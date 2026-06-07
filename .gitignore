@@ -30,6 +30,7 @@ pnpm-lock.yaml
 stats.html
 
 .idea
+.claude
 /test-results/
 /blob-report/
 /playwright/.cache/
