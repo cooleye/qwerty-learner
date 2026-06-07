@@ -1,6 +1,5 @@
 import Layout from '../../components/Layout'
 import ezbdc from '@/assets/friendlinks/ezbdc.jpg'
-import kk from '@/assets/friendlinks/kk.jpg'
 import web_worker from '@/assets/friendlinks/web-worker.png'
 import type React from 'react'
 
@@ -11,12 +10,6 @@ export const FriendLinks: React.FC = () => {
       href: 'https://ezbdc.dashu.ai',
       imgSrc: ezbdc,
       description: '一款极简的英文单词学习应用，可以非常方便高效地学习英文，具有有挑战性的单词背诵模式，无需注册，下载即用',
-    },
-    {
-      title: 'Kai',
-      href: 'https://kaiyi.cool/',
-      imgSrc: kk,
-      description: 'Kai 的个人博客，记录了一些技术文章，生活感悟，以及一些有趣的小项目',
     },
     {
       title: 'Web Worker-前端程序员都爱听',
@@ -52,12 +45,6 @@ export const FriendLinks: React.FC = () => {
               </a>
             ))}
           </div>
-        </div>
-        <div className="mt-auto pb-5 text-center text-sm text-gray-500">
-          想要添加友链？请联系邮箱：
-          <a href="mailto:me@kaiyi.cool" className="text-blue-500">
-            me@kaiyi.cool
-          </a>
         </div>
       </div>
     </Layout>

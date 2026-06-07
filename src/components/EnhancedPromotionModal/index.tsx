@@ -139,8 +139,8 @@ const EnhancedPromotionModal: React.FC = () => {
 
                     <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
                       <p>
-                        <strong>说明：</strong>QwertyLearner.ai 由英国 DeepLearningAI 独立开发运营，为开源版 QwertyLearner
-                        的独立衍生版本，开源版将持续维持开源与开放运营。
+                        <strong>说明：</strong>QwertyLearner.ai 由英国 DeepLearningAI 独立开发运营，为 QwertyLearner
+                        的独立衍生版本，本版本将持续维持开放运营。
                       </p>
                     </div>
                   </div>

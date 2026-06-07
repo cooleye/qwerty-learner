@@ -125,7 +125,7 @@ export const DonateCard = () => {
                       <br />
                     </p>
                     <p className="mx-auto px-4 indent-4 font-bold">
-                      Qwerty Learner 坚持 <span className="font-medium ">开源、无广告、无商业化</span> 已经
+                      Qwerty Learner 通过打字练习的方式帮助您记忆单词、锻炼英语肌肉记忆，已经
                       <HighlightedText className="text-indigo-500"> {dayFromQwerty} </HighlightedText>天。
                     </p>
                     <p className="mx-auto px-4 indent-4">

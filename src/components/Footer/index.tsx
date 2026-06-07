@@ -77,10 +77,7 @@ const Footer: React.FC = () => {
           可以在任意文件中一键开启，开启后单词显示在状态栏中，且插件会拦截用户对文档的输入，不会影响到原始文档。
         </p>
         <br /> <br />
-        <a className="mr-5 underline dark:text-gray-300" href="https://github.com/Kaiyiwing/qwerty-learner-vscode">
-          GitHub 项目
-        </a>
-        <a className="underline dark:text-gray-300" href="https://marketplace.visualstudio.com/items?itemName=Kaiyi.qwerty-learner">
+        <a className="mr-5 underline dark:text-gray-300" href="https://marketplace.visualstudio.com/items?itemName=Kaiyi.qwerty-learner">
           VSCode 插件链接
         </a>
         <br />
@@ -95,7 +92,7 @@ const Footer: React.FC = () => {
         onClose={() => handleCloseInfoPanel('community')}
       >
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Qwerty Learner 是一个开源项目，旨在为用户提供高质量、可靠的打字练习工具。
+          Qwerty Learner 通过打字练习的方式帮助您记忆单词、锻炼英语肌肉记忆，支持音标发音、默写模式、多样化词库，高效提升英语水平和打字技能。
           <br />
           加入我们的用户社群后，您可以与我们的开发团队进行沟通，分享您的使用体验和建议，帮助我们改进产品，同时也能够及时了解我们的最新动态和更新内容。
           <br />
@@ -108,7 +105,7 @@ const Footer: React.FC = () => {
         <br />
         <p className="text-sm text-gray-500  dark:text-gray-400">再次感谢您的支持和关注！</p>
         <br />
-        <img className="ml-1 w-2/6 " src="https://qwerty.kaiyi.cool/weChat-group.png" alt="weChat-group" />
+        <img className="ml-1 w-2/6 " src="https://qwerty.listenup.top/weChat-group.png" alt="weChat-group" />
         <br />
       </InfoPanel>
 
@@ -121,7 +118,7 @@ const Footer: React.FC = () => {
         onClose={() => handleCloseInfoPanel('redBook')}
       >
         <p className="text-sm text-gray-500  dark:text-gray-400">
-          Qwerty Learner 是一个开源项目，旨在为用户提供高质量、可靠的打字练习工具。
+          Qwerty Learner 通过打字练习的方式帮助您记忆单词、锻炼英语肌肉记忆，支持音标发音、默写模式、多样化词库，高效提升英语水平和打字技能。
           <br />
           关注小红书后，您可以获得开发团队的最新动态和更新内容，反馈您的使用体验和建议，帮助我们改进产品。
           <br />
