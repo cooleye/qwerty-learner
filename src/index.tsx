@@ -35,12 +35,17 @@ function Root() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600)
 
   useEffect(() => {
+    let wasMobile = window.innerWidth <= 600
+    setIsMobile(wasMobile)
+
     const handleResize = () => {
-      const isMobile = window.innerWidth <= 600
-      if (!isMobile) {
+      const nowMobile = window.innerWidth <= 600
+      // 仅在从移动端切换回桌面端时刷新页面
+      if (wasMobile && !nowMobile) {
         window.location.href = '/'
       }
-      setIsMobile(isMobile)
+      wasMobile = nowMobile
+      setIsMobile(nowMobile)
     }
 
     window.addEventListener('resize', handleResize)
