@@ -1,0 +1,98 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  phone              String?   @unique
+  email              String?   @unique
+  passwordHash       String
+  name               String?
+  avatarUrl          String?
+  role               String    @default("user")
+  status             String    @default("active")
+  membership         String    @default("free")
+  membershipExpireAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  lastLoginAt        DateTime?
+
+  activationCodes   ActivationCode[]
+  paymentOrders     PaymentOrder[]
+
+  @@map("users")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  name         String?
+  email        String?
+  role         String   @default("admin")
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model ActivationCode {
+  id         String    @id @default(uuid())
+  code       String    @unique
+  batch      String
+  status     String    @default("unused")
+  source     String    @default("admin")
+  usedBy     String?
+  usedAt     DateTime?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+
+  user         User?          @relation(fields: [usedBy], references: [id])
+  paymentOrder PaymentOrder?
+
+  @@index([status])
+  @@index([batch])
+  @@index([code])
+  @@map("activation_codes")
+}
+
+model PaymentOrder {
+  id               String    @id @default(uuid())
+  orderId          String    @unique
+  userId           String?
+  channel          String
+  amount           Int
+  subject          String
+  status           String    @default("pending")
+  tradeNo          String?
+  activationCodeId String?   @unique
+  paidAt           DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user           User?           @relation(fields: [userId], references: [id])
+  activationCode ActivationCode? @relation(fields: [activationCodeId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@index([channel])
+  @@index([userId])
+  @@map("payment_orders")
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("system_configs")
+}
