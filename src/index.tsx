@@ -4,10 +4,16 @@ import { ErrorBook } from './pages/ErrorBook'
 import { FriendLinks } from './pages/FriendLinks'
 import MobilePage from './pages/Mobile'
 import TypingPage from './pages/Typing'
+import LoginPage from './pages/Login'
+import RegisterPage from './pages/Register'
+import ProfilePage from './pages/Profile'
+import MembershipPage from './pages/Profile/MembershipPage'
+import { tokenAtom, userAtom } from '@/store/authAtom'
 import { isOpenDarkModeAtom } from '@/store'
+import { api } from '@/utils/api'
 import { Analytics } from '@vercel/analytics/react'
 import 'animate.css'
-import { useAtomValue } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 import mixpanel from 'mixpanel-browser'
 import process from 'process'
 import React, { Suspense, lazy, useEffect, useState } from 'react'
@@ -28,6 +34,20 @@ if (process.env.NODE_ENV === 'production') {
 
 function Root() {
   const darkMode = useAtomValue(isOpenDarkModeAtom)
+  const [token] = useAtom(tokenAtom)
+  const [, setUser] = useAtom(userAtom)
+
+  // 启动时自动获取用户信息
+  useEffect(() => {
+    if (token) {
+      api.get<{ user: import('@/store/authAtom').UserInfo }>('/auth/me').then((res) => {
+        if (res.success && res.data?.user) {
+          setUser(res.data.user)
+        }
+      })
+    }
+  }, [token, setUser])
+
   useEffect(() => {
     darkMode ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark')
   }, [darkMode])
@@ -66,6 +86,10 @@ function Root() {
                 <Route path="/analysis" element={<AnalysisPage />} />
                 <Route path="/error-book" element={<ErrorBook />} />
                 <Route path="/friend-links" element={<FriendLinks />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile/membership" element={<MembershipPage />} />
                 <Route path="/*" element={<Navigate to="/" />} />
               </>
             )}

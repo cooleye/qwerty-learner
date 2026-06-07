@@ -34,12 +34,17 @@ export default function DictionaryComponent({ dictionary }: Props) {
       <DialogTrigger asChild>
         <div
           ref={divRef}
-          className={`group flex  h-36 w-80 cursor-pointer items-center justify-center overflow-hidden rounded-lg p-4 text-left shadow-lg focus:outline-none ${
+          className={`group relative flex  h-36 w-80 cursor-pointer items-center justify-center overflow-hidden rounded-lg p-4 text-left shadow-lg focus:outline-none ${
             isSelected ? 'bg-indigo-400' : 'bg-zinc-50 hover:bg-white dark:bg-gray-800 dark:hover:bg-gray-700'
           }`}
           role="button"
           // onClick={onClick}
         >
+          {dictionary.isPaid && (
+            <span className="absolute right-2 top-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
+              VIP
+            </span>
+          )}
           <div className="relative ml-1 mt-2 flex h-full w-full flex-col items-start justify-start">
             <h1
               className={`mb-1.5 text-xl font-normal  ${

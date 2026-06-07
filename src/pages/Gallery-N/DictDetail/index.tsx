@@ -7,10 +7,11 @@ import useErrorWordData from '../hooks/useErrorWords'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { isLoggedInAtom, isVipAtom } from '@/store/authAtom'
 import { currentChapterAtom, currentDictIdAtom, reviewModeInfoAtom } from '@/store'
 import type { Dictionary } from '@/typings'
 import range from '@/utils/range'
-import { useAtom, useSetAtom } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import IcOutlineCollectionsBookmark from '~icons/ic/outline-collections-bookmark'
@@ -29,8 +30,11 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
   const [curTab, setCurTab] = useState<Tab>(Tab.Chapters)
   const setReviewModeInfo = useSetAtom(reviewModeInfoAtom)
   const navigate = useNavigate()
+  const isLoggedIn = useAtomValue(isLoggedInAtom)
+  const isVip = useAtomValue(isVipAtom)
   const { deleteWordRecord } = useDeleteWordRecord()
   const [reload, setReload] = useState(false)
+  const [showPaywall, setShowPaywall] = useState(false)
 
   const chapter = useMemo(() => (dict.id === currentDictId ? currentChapter : 0), [currentChapter, currentDictId, dict.id])
   const { errorWordData, isLoading, error } = useErrorWordData(dict, reload)
@@ -49,12 +53,17 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
 
   const onChangeChapter = useCallback(
     (index: number) => {
+      // 付费课程权限校验
+      if (dict.isPaid && !isVip) {
+        setShowPaywall(true)
+        return
+      }
       setCurrentDictId(dict.id)
       setCurrentChapter(index)
       setReviewModeInfo((old) => ({ ...old, isReviewMode: false }))
       navigate('/')
     },
-    [dict.id, navigate, setCurrentChapter, setCurrentDictId, setReviewModeInfo],
+    [dict.id, navigate, setCurrentChapter, setCurrentDictId, setReviewModeInfo, dict.isPaid, isVip],
   )
 
   const handleTabChange = useCallback(
@@ -131,6 +140,41 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* 付费课程权限弹窗 */}
+      {showPaywall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowPaywall(false)}>
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-2 text-center text-xl font-bold text-gray-800 dark:text-gray-100">该课程需要会员权限</h3>
+            <p className="mb-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              {isLoggedIn ? '您当前为免费用户，升级 VIP 即可解锁所有付费课程' : '请先登录后查看该课程'}
+            </p>
+            <div className="flex gap-3">
+              {isLoggedIn ? (
+                <button
+                  onClick={() => { setShowPaywall(false); navigate('/profile/membership') }}
+                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+                >
+                  升级会员
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setShowPaywall(false); navigate('/login') }}
+                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+                >
+                  去登录
+                </button>
+              )}
+              <button
+                onClick={() => setShowPaywall(false)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
