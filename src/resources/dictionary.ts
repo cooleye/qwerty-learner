@@ -299,6 +299,7 @@ const chinaExam: DictionaryResource[] = [
     length: 20199,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: '4000_Essential_English_Words1',
@@ -604,6 +605,7 @@ const internationalExam: DictionaryResource[] = [
     length: 3047,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'gre',
@@ -615,6 +617,7 @@ const internationalExam: DictionaryResource[] = [
     length: 6515,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'gre1500',
@@ -648,6 +651,7 @@ const internationalExam: DictionaryResource[] = [
     length: 1451,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'ZaiYaoNiMing_GRE3000',
@@ -1363,6 +1367,7 @@ const internationalExam: DictionaryResource[] = [
     length: 4464,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'SATen',
@@ -1374,6 +1379,7 @@ const internationalExam: DictionaryResource[] = [
     length: 2681,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'toefl',
@@ -1385,6 +1391,7 @@ const internationalExam: DictionaryResource[] = [
     length: 4264,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'bec2',
@@ -1407,6 +1414,7 @@ const internationalExam: DictionaryResource[] = [
     length: 2825,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'PTE_junior',
@@ -1440,6 +1448,7 @@ const internationalExam: DictionaryResource[] = [
     length: 3170,
     language: 'en',
     languageCategory: 'en',
+    isPaid: true,
   },
   {
     id: 'PTE_FIB_R_junior',
