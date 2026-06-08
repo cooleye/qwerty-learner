@@ -1,0 +1,116 @@
+name: Deploy Backend to Alibaba Cloud
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to Alibaba Cloud ECS
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.ALIYUN_HOST }}
+        username: root
+        password: ${{ secrets.ALIYUN_PASSWORD }}
+        command_timeout: 30m
+        envs: GITHUB_TOKEN
+        script: |
+          set -e
+          DEPLOY_DIR="/opt/qwerty-learner"
+
+          echo "📦 进入部署目录..."
+          mkdir -p $DEPLOY_DIR
+          cd $DEPLOY_DIR
+
+          echo "💾 检查磁盘空间..."
+          df -h /
+          USED_PERCENT=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+          if [ "$USED_PERCENT" -gt 80 ]; then
+            echo "⚠️ 磁盘使用率 ${USED_PERCENT}%，清理 Docker 资源..."
+            docker system prune -af --volumes || true
+          fi
+
+          echo "📝 备份 .env 文件..."
+          if [ -f backend/.env ]; then
+            cp backend/.env /tmp/ql-env.backup
+            echo "✅ .env 已备份"
+          fi
+
+          echo "📥 拉取最新代码..."
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/cooleye/qwerty-learner.git
+          git fetch origin
+          git checkout ${{ github.ref_name }}
+          git pull origin ${{ github.ref_name }}
+
+          echo "🔄 恢复 .env 文件..."
+          if [ -f /tmp/ql-env.backup ]; then
+            cp /tmp/ql-env.backup backend/.env
+            rm /tmp/ql-env.backup
+            echo "✅ .env 已恢复"
+          fi
+
+          echo "🧹 清理旧 Docker 镜像..."
+          docker image prune -af || true
+          docker builder prune -af || true
+
+          echo "🔨 构建并启动服务..."
+          cd backend
+          docker-compose build --no-cache app
+          docker-compose up -d --force-recreate app
+          docker image prune -af || true
+
+          echo "⏳ 等待服务启动..."
+          sleep 15
+
+          echo "🏥 执行健康检查..."
+          MAX_RETRIES=15
+          RETRY_COUNT=0
+          HEALTHY=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            CONTAINER_STATUS=$(docker inspect --format='{{.State.Status}}' qwerty-learner-backend 2>/dev/null || echo "not_found")
+
+            if [ "$CONTAINER_STATUS" = "exited" ]; then
+              EXIT_CODE=$(docker inspect --format='{{.State.ExitCode}}' qwerty-learner-backend 2>/dev/null || echo "unknown")
+              echo "❌ 容器已退出！退出码: $EXIT_CODE"
+              echo "📋 应用日志:"
+              docker-compose logs --tail 100 app
+              exit 1
+            fi
+
+            CONTAINER_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' qwerty-learner-backend 2>/dev/null || echo "unknown")
+            echo "容器状态: $CONTAINER_STATUS, 健康状态: $CONTAINER_HEALTH"
+
+            if [ "$CONTAINER_HEALTH" = "healthy" ]; then
+              echo "✅ 部署成功！"
+              HEALTHY=true
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⏳ 等待容器健康，重试 ($RETRY_COUNT/$MAX_RETRIES)..."
+              sleep 5
+            fi
+          done
+
+          if [ "$HEALTHY" = false ]; then
+            echo "❌ 健康检查失败"
+            echo "📋 容器状态:"
+            docker-compose ps -a
+            echo "📋 应用日志:"
+            docker-compose logs --tail 100 app
+            exit 1
+          fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
