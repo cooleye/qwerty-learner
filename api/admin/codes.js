@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
       const {data,count,error} = await query.range((page-1)*ps, page*ps-1);
       if (error) return res.status(500).json({error:error.message});
 
-      const {count:total}=await db.from('activation_codes').select('*',{count:'exact',head:true});
+      const {count:total}=await db.from('activation_codes').select('*',{count:'exact',head:true}).neq('status','void');
       const {count:unused}=await db.from('activation_codes').select('*',{count:'exact',head:true}).eq('status','unused');
       const {count:used}=await db.from('activation_codes').select('*',{count:'exact',head:true}).eq('status','used');
       const {count:sold}=await db.from('activation_codes').select('*',{count:'exact',head:true}).eq('status','sold');
@@ -70,6 +70,12 @@ module.exports = async (req, res) => {
         const {error} = await db.from('activation_codes').update({status:'sold'}).eq('id',id).eq('status','unused');
         if (error) return res.status(500).json({error:error.message});
         return res.json({success:true, message:'已标记为已售出'});
+      }
+
+      if (action === 'void') {
+        const {error} = await db.from('activation_codes').update({status:'void'}).eq('id',id).neq('status','used');
+        if (error) return res.status(500).json({error:error.message});
+        return res.json({success:true, message:'已作废'});
       }
 
       return res.status(400).json({error:'未知操作'});

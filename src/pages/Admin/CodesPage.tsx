@@ -6,8 +6,8 @@ interface Code { id: string; code: string; batch: string; status: string; member
 interface Stats { total: number; unused: number; used: number; sold: number }
 interface MType { code: string; name: string; prefix: string; duration_days: number }
 
-const statusColors: Record<string, string> = { unused: 'bg-green-100 text-green-700', sold: 'bg-blue-100 text-blue-700', used: 'bg-gray-100 text-gray-600' }
-const statusLabels: Record<string, string> = { unused: '未使用', sold: '已售出', used: '已使用' }
+const statusColors: Record<string, string> = { unused: 'bg-green-100 text-green-700', sold: 'bg-blue-100 text-blue-700', used: 'bg-gray-100 text-gray-600', void: 'bg-red-100 text-red-700' }
+const statusLabels: Record<string, string> = { unused: '未使用', sold: '已售出', used: '已使用', void: '已作废' }
 
 const CodesPage: React.FC = () => {
   const [codes, setCodes] = useState<Code[]>([]); const [stats, setStats] = useState<Stats>({ total: 0, unused: 0, used: 0, sold: 0 })
@@ -40,8 +40,8 @@ const CodesPage: React.FC = () => {
     else alert(res.error || '生成失败')
   }
 
-  const markSold = async (id: string) => {
-    const res = await fetch('/api/admin/codes', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({ id, action: 'sold' }) }).then(r => r.json())
+  const markSold = async (id: string, action = 'sold') => {
+    const res = await fetch('/api/admin/codes', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({ id, action }) }).then(r => r.json())
     if (res.success) fetchCodes()
     else alert(res.error || '操作失败')
   }
@@ -84,6 +84,7 @@ const CodesPage: React.FC = () => {
           <option value="unused">未使用</option>
           <option value="sold">已售出</option>
           <option value="used">已使用</option>
+          <option value="void">已作废</option>
         </select>
         <input value={filterBatch} onChange={e => setFilterBatch(e.target.value)} placeholder="批次搜索" className="rounded-lg border border-gray-300 px-3 py-2 text-sm flex-1" />
         <button onClick={fetchCodes} className="rounded-lg bg-gray-600 px-4 py-2 text-sm text-white hover:bg-gray-700">搜索</button>
@@ -121,8 +122,11 @@ const CodesPage: React.FC = () => {
                       {code.status === 'unused' && (
                         <button onClick={() => markSold(code.id)} className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700 hover:bg-blue-100">标记已售</button>
                       )}
-                      {code.status !== 'used' && (
+                      {(code.status === 'unused' || code.status === 'sold') ? (
                         <button onClick={() => setShipCode(code)} className="rounded bg-green-50 px-2 py-1 text-xs text-green-700 hover:bg-green-100">📦发货</button>
+                      ) : null}
+                      {(code.status === 'unused' || code.status === 'sold') && (
+                        <button onClick={() => markSold(code.id, 'void')} className="rounded bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100">作废</button>
                       )}
                     </div>
                   </td>
