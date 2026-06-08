@@ -120,3 +120,8 @@ UPDATE public.profiles p
 SET email = u.email
 FROM auth.users u
 WHERE p.id = u.id AND p.email IS NULL;
+
+-- 8. 修改 activation_codes 表的 status 约束，增加 void
+ALTER TABLE public.activation_codes DROP CONSTRAINT IF EXISTS activation_codes_status_check;
+ALTER TABLE public.activation_codes ADD CONSTRAINT activation_codes_status_check
+  CHECK (status IN ('unused', 'used', 'sold', 'void'));
