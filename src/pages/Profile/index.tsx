@@ -1,5 +1,5 @@
 import { userAtom, tokenAtom, isVipAtom } from '@/store/authAtom'
-import { api } from '@/utils/api'
+import { supabase } from '@/lib/supabase'
 import { useAtom, useAtomValue } from 'jotai'
 import type React from 'react'
 import { useState } from 'react'
@@ -14,7 +14,8 @@ const ProfilePage: React.FC = () => {
   const [activating, setActivating] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     setToken(null)
     setUser(null)
     navigate('/')
@@ -24,13 +25,17 @@ const ProfilePage: React.FC = () => {
     if (!activateCode.trim()) return
     setActivating(true)
     setActivateMsg('')
-    const res = await api.post<{ message: string; membershipExpireAt: string }>('/membership/activate-code', { code: activateCode.trim() })
-    if (res.success) {
-      setActivateMsg(res.data?.message || '激活成功')
-      setUser((prev) => prev ? { ...prev, membership: 'vip', membershipExpireAt: res.data?.membershipExpireAt } : prev)
+
+    const { data, error: rpcError } = await supabase.rpc('redeem_activation_code', {
+      p_code: activateCode.trim(),
+    })
+
+    if (data?.success) {
+      setActivateMsg(data.message || '激活成功')
+      setUser((prev) => prev ? { ...prev, membership: 'vip', membershipExpireAt: data.membership_expire_at } : prev)
       setActivateCode('')
     } else {
-      setActivateMsg(res.error || '激活失败')
+      setActivateMsg(data?.error || rpcError?.message || '激活失败')
     }
     setActivating(false)
   }

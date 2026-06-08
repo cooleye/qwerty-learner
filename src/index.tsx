@@ -10,7 +10,7 @@ import ProfilePage from './pages/Profile'
 import MembershipPage from './pages/Profile/MembershipPage'
 import { tokenAtom, userAtom } from '@/store/authAtom'
 import { isOpenDarkModeAtom } from '@/store'
-import { api } from '@/utils/api'
+import { supabase } from '@/lib/supabase'
 import { Analytics } from '@vercel/analytics/react'
 import 'animate.css'
 import { useAtom, useAtomValue } from 'jotai'
@@ -34,19 +34,44 @@ if (process.env.NODE_ENV === 'production') {
 
 function Root() {
   const darkMode = useAtomValue(isOpenDarkModeAtom)
-  const [token] = useAtom(tokenAtom)
+  const [token, setToken] = useAtom(tokenAtom)
   const [, setUser] = useAtom(userAtom)
 
-  // 启动时自动获取用户信息
+  // 启动时从 Supabase 恢复 session
   useEffect(() => {
-    if (token) {
-      api.get<{ user: import('@/store/authAtom').UserInfo }>('/auth/me').then((res) => {
-        if (res.success && res.data?.user) {
-          setUser(res.data.user)
-        }
-      })
-    }
-  }, [token, setUser])
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setToken(session.access_token)
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              setUser({
+                id: session.user.id,
+                name: profile.name || session.user.email || '用户',
+                phone: session.user.phone || null,
+                email: session.user.email || null,
+                membership: profile.membership || 'free',
+                membershipExpireAt: profile.membership_expire_at || null,
+              })
+            }
+          })
+      }
+    })
+
+    // 监听认证状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setToken(null)
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [setToken, setUser])
 
   useEffect(() => {
     darkMode ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark')

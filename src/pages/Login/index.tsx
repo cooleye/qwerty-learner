@@ -1,5 +1,5 @@
 import { userAtom, tokenAtom, type UserInfo } from '@/store/authAtom'
-import { api } from '@/utils/api'
+import { supabase } from '@/lib/supabase'
 import { useSetAtom } from 'jotai'
 import type React from 'react'
 import { useState } from 'react'
@@ -19,15 +19,34 @@ const LoginPage: React.FC = () => {
     setLoading(true)
     setError('')
 
-    const res = await api.post<{ token: string; user: UserInfo }>('/auth/login', { account, password })
-    if (!res.success) {
-      setError(res.error || '登录失败')
+    const isEmail = account.includes('@')
+    const { data, error: authError } = isEmail
+      ? await supabase.auth.signInWithPassword({ email: account, password })
+      : await supabase.auth.signInWithPassword({ phone: account, password })
+
+    if (authError || !data.session) {
+      setError(authError?.message || '登录失败')
       setLoading(false)
       return
     }
 
-    setToken(res.data!.token)
-    setUser(res.data!.user)
+    setToken(data.session.access_token)
+
+    // 获取用户资料
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
+
+    setUser({
+      id: data.user.id,
+      name: profile?.name || data.user.email || '用户',
+      phone: data.user.phone || null,
+      email: data.user.email || null,
+      membership: profile?.membership || 'free',
+      membershipExpireAt: profile?.membership_expire_at || null,
+    })
     navigate('/')
   }
 
@@ -69,9 +88,7 @@ const LoginPage: React.FC = () => {
         </form>
         <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           还没有账号？
-          <Link to="/register" className="ml-1 text-indigo-600 hover:underline dark:text-indigo-400">
-            立即注册
-          </Link>
+          <Link to="/register" className="ml-1 text-indigo-600 hover:underline dark:text-indigo-400">立即注册</Link>
         </p>
       </div>
     </div>

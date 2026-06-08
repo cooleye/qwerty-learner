@@ -1,5 +1,5 @@
 import { userAtom, tokenAtom, type UserInfo } from '@/store/authAtom'
-import { api } from '@/utils/api'
+import { supabase } from '@/lib/supabase'
 import { useSetAtom } from 'jotai'
 import type React from 'react'
 import { useState } from 'react'
@@ -26,16 +26,24 @@ const RegisterPage: React.FC = () => {
     setLoading(true)
     setError('')
 
-    const payload = registerType === 'email' ? { email, password, name } : { phone, password, name }
-    const res = await api.post<{ token: string; user: UserInfo }>('/auth/register', payload)
-    if (!res.success) {
-      setError(res.error || '注册失败')
+    const { data, error: authError } = registerType === 'email'
+      ? await supabase.auth.signUp({ email, password, options: { data: { name } } })
+      : await supabase.auth.signUp({ phone, password, options: { data: { name } } })
+
+    if (authError || !data.session) {
+      setError(authError?.message || '注册失败')
       setLoading(false)
       return
     }
 
-    setToken(res.data!.token)
-    setUser(res.data!.user)
+    setToken(data.session.access_token)
+    setUser({
+      id: data.user!.id,
+      name: name || data.user!.email?.split('@')[0] || '用户',
+      phone: data.user!.phone || null,
+      email: data.user!.email || null,
+      membership: 'free',
+    })
     navigate('/')
   }
 
@@ -44,7 +52,6 @@ const RegisterPage: React.FC = () => {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg dark:bg-gray-800">
         <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-gray-100">注册</h2>
 
-        {/* 注册方式切换 */}
         <div className="mb-6 flex rounded-lg bg-gray-100 p-1 dark:bg-gray-700">
           <button
             type="button"
