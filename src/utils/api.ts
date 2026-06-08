@@ -2,10 +2,17 @@
 const API_BASE = '/api'
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<{ success: boolean; data?: T; error?: string }> {
-  // 优先用用户 token，其次管理员 token
-  const userToken = localStorage.getItem('ql_token')
+  // 管理员 API 用 admin_token，其他用用户 token
+  const isAdminPath = path.startsWith('/admin/')
   const adminToken = localStorage.getItem('admin_token')
-  const tokenValue = userToken ? JSON.parse(userToken) : adminToken || null
+  const userToken = localStorage.getItem('ql_token')
+
+  let tokenValue = null
+  if (isAdminPath && adminToken) {
+    tokenValue = adminToken  // admin_token 是纯字符串，不用 JSON.parse
+  } else if (userToken) {
+    try { tokenValue = JSON.parse(userToken) } catch { tokenValue = userToken }
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

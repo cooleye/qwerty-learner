@@ -24,6 +24,8 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <nav className="flex-1 space-y-1 px-3 py-4">
           {[
             { href: '/admin/dashboard', label: '📊 仪表盘' },
+            { href: '/admin/users', label: '👥 用户管理' },
+            { href: '/admin/orders', label: '📦 订单管理' },
             { href: '/admin/codes', label: '🔑 激活码管理' },
           ].map((item) => (
             <button
