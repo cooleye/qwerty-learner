@@ -17,7 +17,7 @@ const UsersPage: React.FC = () => {
 
   const fetchUsers = () => {
     setLoading(true)
-    const params = new URLSearchParams({ page: String(page), ...(search ? { search } : {}) })
+    const params = new URLSearchParams({ page: String(page), pageSize: '10', ...(search ? { search } : {}) })
     api.get<{ users: User[]; totalPages: number }>(`/admin/users?${params}`).then(res => {
       if (res.success) { setUsers(res.data!.users); setTotalPages(res.data!.totalPages) }
       setLoading(false)

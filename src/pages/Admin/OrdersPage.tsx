@@ -2,33 +2,24 @@ import { api } from '@/utils/api'
 import { useEffect, useState } from 'react'
 import AdminLayout from './AdminLayout'
 
-interface Order {
-  id: string
-  order_id: string
-  channel: string
-  amount: number
-  subject: string
-  status: string
-  created_at: string
-}
+interface Order { id: string; order_id: string; channel: string; amount: number; subject: string; status: string; created_at: string }
+
+const statusLabels: Record<string,string> = { pending:'待支付', paid:'已支付', failed:'失败', refunded:'已退款' }
+const statusColors: Record<string,string> = { pending:'bg-yellow-100 text-yellow-700', paid:'bg-green-100 text-green-700', failed:'bg-red-100 text-red-700', refunded:'bg-gray-100 text-gray-600' }
 
 const OrdersPage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState<Order[]>([]); const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
-    api.get<{ orders: Order[] }>('/admin/orders').then((res) => {
-      if (res.success) setOrders(res.data?.orders || [])
+    api.get<{orders:Order[]; totalPages:number}>(`/admin/orders?page=${page}&pageSize=10`).then(res => {
+      if (res.success) { setOrders(res.data?.orders||[]); setTotalPages(res.data?.totalPages||0) }
       setLoading(false)
     })
-  }, [])
-
-  const statusLabels: Record<string, string> = { pending: '待支付', paid: '已支付', failed: '失败', refunded: '已退款' }
-  const statusColors: Record<string, string> = { pending: 'bg-yellow-100 text-yellow-700', paid: 'bg-green-100 text-green-700', failed: 'bg-red-100 text-red-700', refunded: 'bg-gray-100 text-gray-600' }
+  }, [page])
 
   return (
     <AdminLayout>
-    <div>
       <h1 className="mb-6 text-2xl font-bold text-gray-800">订单管理</h1>
       <div className="rounded-xl bg-white shadow-sm">
         <table className="w-full">
@@ -43,28 +34,29 @@ const OrdersPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
-            ) : orders.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
-            ) : orders.map((order) => (
+            {loading ? (<tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            ) : orders.length === 0 ? (<tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
+            ) : orders.map(order => (
               <tr key={order.id} className="border-b text-sm hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono text-xs">{order.order_id}</td>
-                <td className="px-4 py-3 font-medium">¥{(order.amount / 100).toFixed(2)}</td>
+                <td className="px-4 py-3 font-medium">¥{(order.amount/100).toFixed(2)}</td>
                 <td className="px-4 py-3">{order.subject}</td>
-                <td className="px-4 py-3">{order.channel === 'alipay' ? '支付宝' : '微信支付'}</td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[order.status] || ''}`}>{statusLabels[order.status] || order.status}</span>
-                </td>
-                <td className="px-4 py-3 text-gray-500">{order.created_at ? new Date(order.created_at).toLocaleString() : '-'}</td>
+                <td className="px-4 py-3">{order.channel==='alipay'?'支付宝':'微信支付'}</td>
+                <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[order.status]||''}`}>{statusLabels[order.status]||order.status}</span></td>
+                <td className="px-4 py-3 text-gray-500">{order.created_at?new Date(order.created_at).toLocaleString():'-'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+      {totalPages > 1 && (
+        <div className="mt-4 flex justify-center gap-2">
+          <button disabled={page<=1} onClick={()=>setPage(p=>p-1)} className="rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 disabled:opacity-50">上一页</button>
+          <span className="px-4 py-2 text-sm text-gray-500">{page}/{totalPages}</span>
+          <button disabled={page>=totalPages} onClick={()=>setPage(p=>p+1)} className="rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 disabled:opacity-50">下一页</button>
+        </div>
+      )}
     </AdminLayout>
   )
 }
-
 export default OrdersPage

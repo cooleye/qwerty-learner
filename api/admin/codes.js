@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'GET') {
-      const page = parseInt(req.query.page)||1, ps=20;
+      const page = parseInt(req.query.page)||1, ps = parseInt(req.query.pageSize)||20;
       const q = { mtype: req.query.mtype||'', status: req.query.status||'', batch: req.query.batch||'' };
 
       let query = db.from('activation_codes').select('*', {count:'exact'}).order('created_at',{ascending:false});

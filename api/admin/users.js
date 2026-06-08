@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'GET') {
-      const page = parseInt(req.query.page)||1, ps=20;
+      const page = parseInt(req.query.page)||1, ps = parseInt(req.query.pageSize)||10;
       const search = req.query.search||'';
       const userId = req.query.id;
 
