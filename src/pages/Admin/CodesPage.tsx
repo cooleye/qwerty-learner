@@ -172,10 +172,15 @@ const CodesPage: React.FC = () => {
               </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => setShipCode(null)} className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-gray-600">关闭</button>
-                <button onClick={() => {
+                <button onClick={async () => {
                   const text = `激活码：${shipCode.code}\n学习网址：https://qwerty.listenup.top\n使用说明：手机、平板或者电脑浏览器输入上方网址，注册登录，然后使用激活码（上方那个卡号）激活即可。`
                   navigator.clipboard.writeText(text)
+                  if (shipCode.status === 'unused') {
+                    await fetch('/api/admin/codes', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({ id: shipCode.id, action: 'sold' }) })
+                  }
                   alert('已复制')
+                  setShipCode(null)
+                  fetchCodes()
                 }} className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">复制信息</button>
               </div>
             </div>
