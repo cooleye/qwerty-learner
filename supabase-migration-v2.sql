@@ -95,3 +95,28 @@ BEGIN
   );
 END;
 $func$;
+
+-- 5. profiles 追加 email 字段
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
+
+-- 6. 更新注册触发器，自动存储 email
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, name, phone, email)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email, '用户'),
+    NEW.raw_user_meta_data->>'phone',
+    NEW.email
+  )
+  ON CONFLICT (id) DO UPDATE SET email = NEW.email;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 7. 补全已有用户的 email
+UPDATE public.profiles p
+SET email = u.email
+FROM auth.users u
+WHERE p.id = u.id AND p.email IS NULL;
