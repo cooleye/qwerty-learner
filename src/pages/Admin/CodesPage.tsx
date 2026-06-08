@@ -57,15 +57,9 @@ const CodesPage: React.FC = () => {
     setTimeout(() => setCopied(''), 2000)
   }
 
-  const exportCodes = async () => {
-    // Fetch all codes matching filters (no pagination)
-    const params = new URLSearchParams({ pageSize: '99999' })
-    if (filterType) params.set('mtype', filterType)
-    if (filterStatus) params.set('status', filterStatus)
-    if (filterBatch) params.set('batch', filterBatch)
-    const res = await api.get<{ codes: Code[] }>(`/admin/codes?${params}`)
-    if (!res.success || !res.data?.codes) { alert('导出失败'); return }
-    const text = res.data.codes.map(c => c.code).join('\n')
+  const exportCodes = () => {
+    if (codes.length === 0) { alert('当前列表为空'); return }
+    const text = codes.map(c => c.code).join('\n')
     const blob = new Blob([text], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
