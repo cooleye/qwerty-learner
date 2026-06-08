@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_KEY || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   { auth: { persistSession: false } }
 )
 
