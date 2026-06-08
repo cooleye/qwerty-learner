@@ -1,5 +1,6 @@
 import { api } from '@/utils/api'
 import { useEffect, useState } from 'react'
+import AdminLayout from './AdminLayout'
 
 interface Order {
   id: string
@@ -26,6 +27,7 @@ const OrdersPage: React.FC = () => {
   const statusColors: Record<string, string> = { pending: 'bg-yellow-100 text-yellow-700', paid: 'bg-green-100 text-green-700', failed: 'bg-red-100 text-red-700', refunded: 'bg-gray-100 text-gray-600' }
 
   return (
+    <AdminLayout>
     <div>
       <h1 className="mb-6 text-2xl font-bold text-gray-800">订单管理</h1>
       <div className="rounded-xl bg-white shadow-sm">
@@ -61,6 +63,7 @@ const OrdersPage: React.FC = () => {
         </table>
       </div>
     </div>
+    </AdminLayout>
   )
 }
 

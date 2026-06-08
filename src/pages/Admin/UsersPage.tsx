@@ -1,5 +1,6 @@
 import { api } from '@/utils/api'
 import { useEffect, useState } from 'react'
+import AdminLayout from './AdminLayout'
 
 interface User {
   id: string
@@ -26,6 +27,7 @@ const UsersPage: React.FC = () => {
   useEffect(() => { fetchUsers() }, [])
 
   return (
+    <AdminLayout>
     <div>
       <h1 className="mb-6 text-2xl font-bold text-gray-800">用户管理</h1>
       <div className="mb-4 flex gap-2">
@@ -68,6 +70,7 @@ const UsersPage: React.FC = () => {
         </table>
       </div>
     </div>
+    </AdminLayout>
   )
 }
 

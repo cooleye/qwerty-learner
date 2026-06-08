@@ -1,5 +1,6 @@
 import { api } from '@/utils/api'
 import { useEffect, useState } from 'react'
+import AdminLayout from './AdminLayout'
 
 interface Code {
   id: string
@@ -56,6 +57,7 @@ const CodesPage: React.FC = () => {
   }
 
   return (
+    <AdminLayout>
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">激活码管理</h1>
@@ -128,6 +130,7 @@ const CodesPage: React.FC = () => {
         </div>
       )}
     </div>
+    </AdminLayout>
   )
 }
 
