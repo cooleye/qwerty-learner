@@ -8,7 +8,6 @@ interface MType { code: string; name: string; prefix: string; duration_days: num
 
 const statusColors: Record<string, string> = { unused: 'bg-green-100 text-green-700', sold: 'bg-blue-100 text-blue-700', used: 'bg-gray-100 text-gray-600', void: 'bg-red-100 text-red-700' }
 const statusLabels: Record<string, string> = { unused: '未使用', sold: '已售出', used: '已使用', void: '已作废' }
-
 const PAGE_SIZE = 10
 
 const CodesPage: React.FC = () => {
@@ -18,10 +17,11 @@ const CodesPage: React.FC = () => {
   const [filterType, setFilterType] = useState(''); const [filterStatus, setFilterStatus] = useState(''); const [filterBatch, setFilterBatch] = useState('')
   const [shipCode, setShipCode] = useState<Code | null>(null); const [copied, setCopied] = useState('')
   const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(0)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const token = localStorage.getItem('admin_token')
 
   const fetchCodes = () => {
-    setLoading(true)
+    setLoading(true); setSelectedIds(new Set())
     const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) })
     if (filterType) params.set('mtype', filterType)
     if (filterStatus) params.set('status', filterStatus)
@@ -32,40 +32,45 @@ const CodesPage: React.FC = () => {
     })
   }
 
-  useEffect(() => {
-    fetchCodes()
-    api.get<MType[]>('/admin/membership-types').then(res => { if (res.success) setTypes(res.data || []) })
-  }, [page])
-
+  useEffect(() => { fetchCodes(); api.get<MType[]>('/admin/membership-types').then(res => { if (res.success) setTypes(res.data || []) }) }, [page])
   useEffect(() => { setPage(1) }, [filterType, filterStatus, filterBatch])
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s })
+  }
+  const toggleAll = () => {
+    if (selectedIds.size === codes.filter(c => c.status === 'unused').length) { setSelectedIds(new Set()); return }
+    setSelectedIds(new Set(codes.filter(c => c.status === 'unused').map(c => c.id)))
+  }
+
+  const batchSold = async () => {
+    if (selectedIds.size === 0) return
+    let success = 0
+    for (const id of selectedIds) {
+      const r = await fetch('/api/admin/codes', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({ id, action: 'sold' }) }).then(r => r.json())
+      if (r.success) success++
+    }
+    alert(`批量标记完成：成功 ${success} 个`)
+    fetchCodes()
+  }
 
   const handleGenerate = async () => {
     const res = await api.post('/admin/codes', { count: generateCount, membershipType: generateType })
-    if (res.success) { setShowGenerate(false); fetchCodes() }
-    else alert(res.error || '生成失败')
+    if (res.success) { setShowGenerate(false); fetchCodes() } else alert(res.error || '生成失败')
   }
 
   const markSold = async (id: string, action = 'sold') => {
     const res = await fetch('/api/admin/codes', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify({ id, action }) }).then(r => r.json())
-    if (res.success) fetchCodes()
-    else alert(res.error || '操作失败')
+    if (res.success) fetchCodes(); else alert(res.error || '操作失败')
   }
 
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code)
-    setCopied(code)
-    setTimeout(() => setCopied(''), 2000)
-  }
+  const copyCode = (code: string) => { navigator.clipboard.writeText(code); setCopied(code); setTimeout(() => setCopied(''), 2000) }
 
   const exportCodes = () => {
     if (codes.length === 0) { alert('当前列表为空'); return }
-    const text = codes.map(c => c.code).join('\n')
-    const blob = new Blob([text], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = `激活码-${new Date().toISOString().slice(0, 10)}.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+    const text = codes.map(c => c.code).join('\n'); const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob); const a = document.createElement('a')
+    a.href = url; a.download = `激活码-${new Date().toISOString().slice(0, 10)}.txt`; a.click(); URL.revokeObjectURL(url)
   }
 
   return (
@@ -78,55 +83,54 @@ const CodesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="mb-6 grid grid-cols-4 gap-4">
         {[
           { label: '总计', value: stats.total, color: 'bg-blue-500' }, { label: '未使用', value: stats.unused, color: 'bg-green-500' },
           { label: '已售出', value: stats.sold, color: 'bg-blue-500' }, { label: '已使用', value: stats.used, color: 'bg-gray-500' },
         ].map(s => (
           <div key={s.label} className="rounded-lg bg-white p-4 shadow-sm">
-            <div className={`mb-2 h-1.5 w-8 rounded ${s.color}`} />
-            <div className="text-2xl font-bold">{s.value}</div>
-            <div className="text-sm text-gray-500">{s.label}</div>
+            <div className={`mb-2 h-1.5 w-8 rounded ${s.color}`} /><div className="text-2xl font-bold">{s.value}</div><div className="text-sm text-gray-500">{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
       <div className="mb-4 flex gap-3">
         <select value={filterType} onChange={e => setFilterType(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          <option value="">全部类型</option>
-          {types.map(t => <option key={t.code} value={t.code}>{t.name}</option>)}
+          <option value="">全部类型</option>{types.map(t => <option key={t.code} value={t.code}>{t.name}</option>)}
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          <option value="">全部状态</option>
-          <option value="unused">未使用</option>
-          <option value="sold">已售出</option>
-          <option value="used">已使用</option>
-          <option value="void">已作废</option>
+          <option value="">全部状态</option><option value="unused">未使用</option><option value="sold">已售出</option><option value="used">已使用</option><option value="void">已作废</option>
         </select>
         <input value={filterBatch} onChange={e => setFilterBatch(e.target.value)} placeholder="批次搜索" className="rounded-lg border border-gray-300 px-3 py-2 text-sm flex-1" />
         <button onClick={() => { setPage(1); fetchCodes() }} className="rounded-lg bg-gray-600 px-4 py-2 text-sm text-white hover:bg-gray-700">搜索</button>
       </div>
 
-      {/* Table */}
+      {/* Batch actions */}
+      {selectedIds.size > 0 && (
+        <div className="mb-3 flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-2 text-sm">
+          <span className="font-medium text-blue-700">已选 {selectedIds.size} 项</span>
+          <button onClick={batchSold} className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700">批量标记已售</button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-gray-500 hover:text-gray-700">取消选择</button>
+        </div>
+      )}
+
       {loading ? <div className="text-gray-400">加载中...</div> : (
         <div className="rounded-xl bg-white shadow-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b text-left text-sm text-gray-500">
-                <th className="px-4 py-3">激活码</th>
-                <th className="px-4 py-3">会员类型</th>
-                <th className="px-4 py-3">批次</th>
-                <th className="px-4 py-3">状态</th>
-                <th className="px-4 py-3">操作</th>
+                <th className="w-10 px-2 py-3"><input type="checkbox" checked={selectedIds.size > 0 && selectedIds.size === codes.filter(c => c.status === 'unused').length} onChange={toggleAll} className="h-4 w-4" /></th>
+                <th className="px-4 py-3">激活码</th><th className="px-4 py-3">会员类型</th><th className="px-4 py-3">批次</th><th className="px-4 py-3">状态</th><th className="px-4 py-3">操作</th>
               </tr>
             </thead>
             <tbody>
               {codes.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
               ) : codes.map(code => (
                 <tr key={code.id} className="border-b text-sm hover:bg-gray-50">
+                  <td className="px-2 py-3">
+                    {code.status === 'unused' && <input type="checkbox" checked={selectedIds.has(code.id)} onChange={() => toggleSelect(code.id)} className="h-4 w-4" />}
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs font-medium">{code.code}</td>
                   <td className="px-4 py-3">{types.find(t => t.code === code.membership_type)?.name || code.membership_type}</td>
                   <td className="px-4 py-3 text-gray-500">{code.batch}</td>
@@ -148,7 +152,6 @@ const CodesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-4 flex justify-center gap-2">
           <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 disabled:opacity-50">上一页</button>
@@ -157,7 +160,6 @@ const CodesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Generate Modal */}
       {showGenerate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowGenerate(false)}>
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
@@ -178,7 +180,6 @@ const CodesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Ship Modal */}
       {shipCode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShipCode(null)}>
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
@@ -203,5 +204,4 @@ const CodesPage: React.FC = () => {
     </AdminLayout>
   )
 }
-
 export default CodesPage
