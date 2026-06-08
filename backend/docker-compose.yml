@@ -7,7 +7,6 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      # 连接已有的 english-learning-postgres（通过 app-network 网络）
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-english2026}@english-learning-postgres:5432/qwerty_learner?schema=public
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
@@ -33,8 +32,8 @@ services:
       retries: 3
       start_period: 60s
     networks:
-      - app-network
+      - english-learning-app_app-network
 
 networks:
-  app-network:
+  english-learning-app_app-network:
     external: true
