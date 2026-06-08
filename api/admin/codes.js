@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
       const bn = batch||`batch-${Date.now()}`;
 
       // Get membership type info
-      const {data:mt} = await db().from('membership_types').select('*').eq('code', membershipType||'yearly').single();
+      const {data:mt} = await sup().from('membership_types').select('*').eq('code', membershipType||'yearly').single();
       if (!mt) return res.status(400).json({error:'会员类型不存在'});
 
       const codes = Array.from({length:gc}, ()=>({
