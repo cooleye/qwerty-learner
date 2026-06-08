@@ -2,8 +2,10 @@
 const API_BASE = '/api'
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<{ success: boolean; data?: T; error?: string }> {
-  const token = localStorage.getItem('ql_token')
-  const tokenValue = token ? JSON.parse(token) : null
+  // 优先用用户 token，其次管理员 token
+  const userToken = localStorage.getItem('ql_token')
+  const adminToken = localStorage.getItem('admin_token')
+  const tokenValue = userToken ? JSON.parse(userToken) : adminToken || null
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
