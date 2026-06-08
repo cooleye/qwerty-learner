@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.DEV ? '/api' : 'https://api-qwerty.listenup.top/api'
+// 前后端同域名部署，生产和开发都用相对路径
+const API_BASE = '/api'
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<{ success: boolean; data?: T; error?: string }> {
   const token = localStorage.getItem('ql_token')

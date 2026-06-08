@@ -1,22 +1,30 @@
-name: Deploy Backend to Alibaba Cloud
+name: Deploy to Alibaba Cloud
 
 on:
   push:
     branches:
       - dev
       - master
-    paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Build frontend
+      run: |
+        npm install
+        npm run build
+        tar czf frontend.tar.gz build/
 
     - name: Deploy to Alibaba Cloud ECS
       uses: appleboy/ssh-action@v1.0.0
@@ -61,17 +69,14 @@ jobs:
             echo "✅ .env 已恢复"
           fi
 
-          echo "🧹 清理旧 Docker 镜像..."
-          docker image prune -af || true
-          docker builder prune -af || true
-
-          echo "🔨 构建并启动服务..."
+          echo "🔨 构建后端 Docker 镜像..."
           cd backend
           docker-compose build --no-cache app
           docker-compose up -d --force-recreate app
           docker image prune -af || true
+          docker builder prune -af || true
 
-          echo "⏳ 等待服务启动..."
+          echo "⏳ 等待后端启动..."
           sleep 15
 
           echo "🏥 执行健康检查..."
@@ -81,7 +86,6 @@ jobs:
 
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
             CONTAINER_STATUS=$(docker inspect --format='{{.State.Status}}' qwerty-learner-backend 2>/dev/null || echo "not_found")
-
             if [ "$CONTAINER_STATUS" = "exited" ]; then
               EXIT_CODE=$(docker inspect --format='{{.State.ExitCode}}' qwerty-learner-backend 2>/dev/null || echo "unknown")
               echo "❌ 容器已退出！退出码: $EXIT_CODE"
@@ -89,12 +93,10 @@ jobs:
               docker-compose logs --tail 100 app
               exit 1
             fi
-
             CONTAINER_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' qwerty-learner-backend 2>/dev/null || echo "unknown")
             echo "容器状态: $CONTAINER_STATUS, 健康状态: $CONTAINER_HEALTH"
-
             if [ "$CONTAINER_HEALTH" = "healthy" ]; then
-              echo "✅ 部署成功！"
+              echo "✅ 后端部署成功！"
               HEALTHY=true
               break
             else
@@ -106,11 +108,30 @@ jobs:
 
           if [ "$HEALTHY" = false ]; then
             echo "❌ 健康检查失败"
-            echo "📋 容器状态:"
-            docker-compose ps -a
-            echo "📋 应用日志:"
             docker-compose logs --tail 100 app
             exit 1
           fi
+
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload frontend to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.ALIYUN_HOST }}
+        username: root
+        password: ${{ secrets.ALIYUN_PASSWORD }}
+        source: "frontend.tar.gz"
+        target: "/tmp/"
+
+    - name: Extract frontend on server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.ALIYUN_HOST }}
+        username: root
+        password: ${{ secrets.ALIYUN_PASSWORD }}
+        script: |
+          rm -rf /opt/qwerty-learner/frontend/*
+          tar xzf /tmp/frontend.tar.gz -C /opt/qwerty-learner/frontend/
+          chown -R root:root /opt/qwerty-learner/frontend/
+          echo "✅ 前端部署完成！"
