@@ -134,6 +134,7 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
                     index={index}
                     checked={chapter === index}
                     dictID={dict.id}
+                    isLocked={!(dict.id === 'cet4' && index === 0) && !isVip}
                     onChange={onChangeChapter}
                   />
                 ))}
