@@ -53,8 +53,9 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
 
   const onChangeChapter = useCallback(
     (index: number) => {
-      // 付费课程权限校验
-      if (dict.isPaid && !isVip) {
+      // CET-4 (cet4) 第1章免费，其余全部需要会员
+      const isFreeChapter = dict.id === 'cet4' && index === 0
+      if (!isFreeChapter && !isVip) {
         setShowPaywall(true)
         return
       }
@@ -63,7 +64,7 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
       setReviewModeInfo((old) => ({ ...old, isReviewMode: false }))
       navigate('/')
     },
-    [dict.id, navigate, setCurrentChapter, setCurrentDictId, setReviewModeInfo, dict.isPaid, isVip],
+    [dict.id, navigate, setCurrentChapter, setCurrentDictId, setReviewModeInfo, isVip],
   )
 
   const handleTabChange = useCallback(

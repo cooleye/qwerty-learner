@@ -40,7 +40,11 @@ export default function DictionaryComponent({ dictionary }: Props) {
           role="button"
           // onClick={onClick}
         >
-          {dictionary.isPaid && (
+          {dictionary.id === 'cet4' ? (
+            <span className="absolute right-2 top-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
+              第1章免费
+            </span>
+          ) : (
             <span className="absolute right-2 top-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
               VIP
             </span>
