@@ -7,7 +7,7 @@ import useErrorWordData from '../hooks/useErrorWords'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { isLoggedInAtom, isVipAtom } from '@/store/authAtom'
+import { isLoggedInAtom, isVipAtom, userAtom } from '@/store/authAtom'
 import { currentChapterAtom, currentDictIdAtom, reviewModeInfoAtom } from '@/store'
 import type { Dictionary } from '@/typings'
 import range from '@/utils/range'
@@ -32,9 +32,11 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
   const navigate = useNavigate()
   const isLoggedIn = useAtomValue(isLoggedInAtom)
   const isVip = useAtomValue(isVipAtom)
+  const currentUser = useAtomValue(userAtom)
   const { deleteWordRecord } = useDeleteWordRecord()
   const [reload, setReload] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
+  const [showDisabledTip, setShowDisabledTip] = useState(false)
 
   const chapter = useMemo(() => (dict.id === currentDictId ? currentChapter : 0), [currentChapter, currentDictId, dict.id])
   const { errorWordData, isLoading, error } = useErrorWordData(dict, reload)
@@ -53,6 +55,11 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
 
   const onChangeChapter = useCallback(
     (index: number) => {
+      // 被禁用用户无法访问任何课程
+      if ((currentUser as any)?.status === 'disabled') {
+        setShowDisabledTip(true)
+        return
+      }
       // CET-4 (cet4) 第1章免费，其余全部需要会员
       const isFreeChapter = dict.id === 'cet4' && index === 0
       if (!isFreeChapter && !isVip) {
@@ -64,7 +71,7 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
       setReviewModeInfo((old) => ({ ...old, isReviewMode: false }))
       navigate('/')
     },
-    [dict.id, navigate, setCurrentChapter, setCurrentDictId, setReviewModeInfo, isVip],
+    [dict.id, navigate, setCurrentChapter, setCurrentDictId, setReviewModeInfo, isVip, currentUser],
   )
 
   const handleTabChange = useCallback(
@@ -141,6 +148,17 @@ export default function DictDetail({ dictionary: dict }: { dictionary: Dictionar
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* 账号禁用弹窗 */}
+      {showDisabledTip && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowDisabledTip(false)}>
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-2 text-center text-xl font-bold text-red-600">账号已被禁用</h3>
+            <p className="mb-6 text-center text-sm text-gray-500 dark:text-gray-400">您的账号已被管理员禁用，无法访问课程。</p>
+            <button onClick={() => setShowDisabledTip(false)} className="w-full rounded-lg bg-gray-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-700">知道了</button>
+          </div>
+        </div>
+      )}
 
       {/* 付费课程权限弹窗 */}
       {showPaywall && (

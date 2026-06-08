@@ -4,6 +4,7 @@ import bookCover from '@/assets/book-cover.png'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import useIntersectionObserver from '@/hooks/useIntersectionObserver'
+import { isVipAtom } from '@/store/authAtom'
 import { currentDictIdAtom } from '@/store'
 import type { Dictionary } from '@/typings'
 import { calcChapterCount } from '@/utils'
@@ -17,6 +18,7 @@ interface Props {
 
 export default function DictionaryComponent({ dictionary }: Props) {
   const currentDictID = useAtomValue(currentDictIdAtom)
+  const isVip = useAtomValue(isVipAtom)
 
   const divRef = useRef<HTMLDivElement>(null)
   const entry = useIntersectionObserver(divRef, {})
@@ -40,15 +42,15 @@ export default function DictionaryComponent({ dictionary }: Props) {
           role="button"
           // onClick={onClick}
         >
-          {dictionary.id === 'cet4' ? (
+          {!isVip && dictionary.id === 'cet4' ? (
             <span className="absolute right-2 top-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
               第1章免费
             </span>
-          ) : (
+          ) : !isVip ? (
             <span className="absolute right-2 top-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
               VIP
             </span>
-          )}
+          ) : null}
           <div className="relative ml-1 mt-2 flex h-full w-full flex-col items-start justify-start">
             <h1
               className={`mb-1.5 text-xl font-normal  ${

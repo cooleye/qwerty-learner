@@ -63,7 +63,15 @@
       "Bash(shuf -i 10000-99999 -n 1)",
       "Bash(tar czf *)",
       "WebFetch(domain:supabase.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(curl -sI https://qwerty-learner-phi-one.vercel.app/)",
+      "Bash(curl -s https://jprcrpntvotchncmvxbm.supabase.co/rest/v1/profiles -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' -H 'Accept: application/json')",
+      "Bash(curl -s https://jprcrpntvotchncmvxbm.supabase.co/rest/v1/activation_codes -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' -H 'Accept: application/json' -H 'Range: 0-9')",
+      "Bash(curl -s https://jprcrpntvotchncmvxbm.supabase.co/rest/v1/profiles?select=count -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' --max-time 10)",
+      "Bash(curl -s https://jprcrpntvotchncmvxbm.supabase.co/rest/v1/activation_codes?select=count -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwcmNycG50dm90Y2huY212eGJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4ODAxNDMsImV4cCI6MjA5NjQ1NjE0M30.6gbY6PMlcVz-qVlEcQpRdUPtEqB0Zkw-CXIgF5-a8qU' --max-time 10)",
+      "Bash(curl *)",
+      "Bash(git stash *)",
+      "Bash(git rm *)"
     ]
   }
 }

@@ -13,6 +13,7 @@ import AdminDashboardPage from './pages/Admin/DashboardPage'
 import AdminCodesPage from './pages/Admin/CodesPage'
 import AdminUsersPage from './pages/Admin/UsersPage'
 import AdminOrdersPage from './pages/Admin/OrdersPage'
+import AdminMembershipTypesPage from './pages/Admin/MembershipTypesPage'
 import { tokenAtom, userAtom } from '@/store/authAtom'
 import { isOpenDarkModeAtom } from '@/store'
 import { supabase } from '@/lib/supabase'
@@ -125,6 +126,7 @@ function Root() {
                 <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                 <Route path="/admin/users" element={<AdminUsersPage />} />
                 <Route path="/admin/orders" element={<AdminOrdersPage />} />
+                <Route path="/admin/membership-types" element={<AdminMembershipTypesPage />} />
                 <Route path="/admin/codes" element={<AdminCodesPage />} />
                 <Route path="/*" element={<Navigate to="/" />} />
               </>

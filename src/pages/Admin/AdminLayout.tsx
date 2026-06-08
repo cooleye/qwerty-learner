@@ -4,6 +4,7 @@ const navItems = [
   { href: '/admin/dashboard', label: '📊 仪表盘' },
   { href: '/admin/users', label: '👥 用户管理' },
   { href: '/admin/orders', label: '📦 订单管理' },
+  { href: '/admin/membership-types', label: '📋 会员类型' },
   { href: '/admin/codes', label: '🔑 激活码管理' },
 ]
 

@@ -39,6 +39,15 @@ const LoginPage: React.FC = () => {
       .eq('id', data.user.id)
       .single()
 
+    // 检查是否被禁用
+    if (profile?.status === 'disabled') {
+      await supabase.auth.signOut()
+      setToken(null)
+      setError('账号已被禁用，请联系管理员')
+      setLoading(false)
+      return
+    }
+
     setUser({
       id: data.user.id,
       name: profile?.name || data.user.email || '用户',
@@ -46,7 +55,7 @@ const LoginPage: React.FC = () => {
       email: data.user.email || null,
       membership: profile?.membership || 'free',
       membershipExpireAt: profile?.membership_expire_at || null,
-    })
+    } as any)
     navigate('/')
   }
 
