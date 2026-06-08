@@ -30,31 +30,37 @@ const RegisterPage: React.FC = () => {
       ? await supabase.auth.signUp({ email, password, options: { data: { name } } })
       : await supabase.auth.signUp({ phone, password, options: { data: { name } } })
 
-    if (authError) {
-      setError(authError.message || '注册失败')
+    // 注册成功（有 user 就说明注册成功了）
+    if (data?.user) {
+      if (data.session) {
+        // 自动确认模式 → 直接登录
+        setToken(data.session.access_token)
+        setUser({
+          id: data.user.id,
+          name: name || data.user.email?.split('@')[0] || '用户',
+          phone: data.user.phone || null,
+          email: data.user.email || null,
+          membership: 'free',
+        })
+        navigate('/')
+        return
+      }
+      // 邮箱确认模式 → 提示检查邮箱
+      alert('注册成功！请检查您的邮箱完成验证后再登录。')
+      navigate('/login')
+      return
+    }
+
+    // 用户已存在
+    if (authError?.message?.includes('already')) {
+      setError('该账号已注册，请直接登录')
       setLoading(false)
       return
     }
 
-    // 自动确认模式（邮箱验证已关闭）→ 直接登录
-    if (data.session) {
-      setToken(data.session.access_token)
-      setUser({
-        id: data.user!.id,
-        name: name || data.user!.email?.split('@')[0] || '用户',
-        phone: data.user!.phone || null,
-        email: data.user!.email || null,
-        membership: 'free',
-      })
-      navigate('/')
-      return
-    }
-
-    // 邮箱确认模式 → 提示检查邮箱
+    // 真正的错误
+    setError(authError?.message || '注册失败')
     setLoading(false)
-    setError('')
-    alert('注册成功！请检查您的邮箱完成验证后再登录。')
-    navigate('/login')
   }
 
   return (
